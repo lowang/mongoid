@@ -2,6 +2,10 @@ require "spec_helper"
 
 describe Mongoid::Threaded do
 
+  def mongoid_current_thread
+    Thread.current[:mongoid] ||= {}
+  end
+
   let(:object) do
     stub
   end
@@ -33,11 +37,11 @@ describe Mongoid::Threaded do
     context "when the stack has elements" do
 
       before do
-        Thread.current["[mongoid]:load-stack"] = [ true ]
+        mongoid_current_thread["[mongoid]:load-stack"] = [ true ]
       end
 
       after do
-        Thread.current["[mongoid]:load-stack"] = []
+        mongoid_current_thread["[mongoid]:load-stack"] = []
       end
 
       it "returns true" do
@@ -48,7 +52,7 @@ describe Mongoid::Threaded do
     context "when the stack has no elements" do
 
       before do
-        Thread.current["[mongoid]:load-stack"] = []
+        mongoid_current_thread["[mongoid]:load-stack"] = []
       end
 
       it "returns false" do
@@ -73,7 +77,7 @@ describe Mongoid::Threaded do
     context "when a stack has been initialized" do
 
       before do
-        Thread.current["[mongoid]:load-stack"] = [ true ]
+        mongoid_current_thread["[mongoid]:load-stack"] = [ true ]
       end
 
       let(:loading) do
@@ -81,7 +85,7 @@ describe Mongoid::Threaded do
       end
 
       after do
-        Thread.current["[mongoid]:load-stack"] = []
+        mongoid_current_thread["[mongoid]:load-stack"] = []
       end
 
       it "returns the stack" do
@@ -128,11 +132,11 @@ describe Mongoid::Threaded do
   describe "#identity_map" do
 
     before do
-      Thread.current["[mongoid]:identity-map"] = object
+      mongoid_current_thread["[mongoid]:identity-map"] = object
     end
 
     after do
-      Thread.current["[mongoid]:identity-map"] = nil
+      mongoid_current_thread["[mongoid]:identity-map"] = nil
     end
 
     it "returns the object with the identity map key" do
@@ -143,11 +147,11 @@ describe Mongoid::Threaded do
   describe "#insert" do
 
     before do
-      Thread.current["[mongoid][test]:insert-consumer"] = object
+      mongoid_current_thread["[mongoid][test]:insert-consumer"] = object
     end
 
     after do
-      Thread.current["[mongoid][test]:insert-consumer"] = nil
+      mongoid_current_thread["[mongoid][test]:insert-consumer"] = nil
     end
 
     it "returns the object with the insert key" do

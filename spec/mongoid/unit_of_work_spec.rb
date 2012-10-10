@@ -2,6 +2,10 @@ require "spec_helper"
 
 describe Mongoid::UnitOfWork do
 
+  def mongoid_current_thread
+    Thread.current[:mongoid] ||= {}
+  end
+
   describe ".unit_of_work" do
 
     before do
@@ -151,7 +155,7 @@ describe Mongoid::UnitOfWork do
       context "when disabled on the current thread" do
 
         before do
-          Thread.current[:"[mongoid]:identity-map-enabled"] = false
+          mongoid_current_thread["[mongoid]:identity-map-enabled"] = false
         end
 
         it "returns false" do
@@ -162,7 +166,7 @@ describe Mongoid::UnitOfWork do
       context "when enabled on the current thread" do
 
         before do
-          Thread.current[:"[mongoid]:identity-map-enabled"] = true
+          mongoid_current_thread["[mongoid]:identity-map-enabled"] = true
         end
 
         it "returns true" do
@@ -173,7 +177,7 @@ describe Mongoid::UnitOfWork do
       context "when no option is on the current thread" do
 
         before do
-          Thread.current[:"[mongoid]:identity-map-enabled"] = nil
+          mongoid_current_thread["[mongoid]:identity-map-enabled"] = nil
         end
 
         it "returns true" do

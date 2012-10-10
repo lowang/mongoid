@@ -31,7 +31,7 @@ module Mongoid
     #
     # @since 3.0.0
     def database_override
-      Thread.current["[mongoid]:db-override"]
+      mongoid_current_thread["[mongoid]:db-override"]
     end
 
     # Set the global database override.
@@ -45,7 +45,7 @@ module Mongoid
     #
     # @since 3.0.0
     def database_override=(name)
-      Thread.current["[mongoid]:db-override"] = name
+      mongoid_current_thread["[mongoid]:db-override"] = name
     end
 
     # Get the database sessions from the current thread.
@@ -57,7 +57,7 @@ module Mongoid
     #
     # @since 3.0.0
     def sessions
-      Thread.current["[mongoid]:sessions"] ||= {}
+      mongoid_current_thread["[mongoid]:sessions"] ||= {}
     end
 
     # Are in the middle of executing the named stack
@@ -99,7 +99,7 @@ module Mongoid
     #
     # @since 2.4.0
     def stack(name)
-      Thread.current["[mongoid]:#{name}-stack"] ||= []
+      mongoid_current_thread["[mongoid]:#{name}-stack"] ||= []
     end
 
     # Begin autosaving a document on the current thread.
@@ -137,7 +137,7 @@ module Mongoid
     #
     # @since 2.0.0
     def clear_persistence_options(klass)
-      Thread.current["[mongoid][#{klass}]:persistence-options"] = nil
+      mongoid_current_thread["[mongoid][#{klass}]:persistence-options"] = nil
       true
     end
 
@@ -184,7 +184,7 @@ module Mongoid
     #
     # @since 2.1.0
     def identity_map
-      Thread.current["[mongoid]:identity-map"] ||= IdentityMap.new
+      mongoid_current_thread["[mongoid]:identity-map"] ||= IdentityMap.new
     end
 
     # Is the identity map enabled on the current thread?
@@ -196,7 +196,7 @@ module Mongoid
     #
     # @since 3.0.0
     def identity_map_enabled?
-      Thread.current["[mongoid]:identity-map-enabled"] != false
+      mongoid_current_thread["[mongoid]:identity-map-enabled"] != false
     end
 
     # Disable the identity map on either the current thread or all threads.
@@ -213,10 +213,10 @@ module Mongoid
     def disable_identity_map(option)
       if option == :all
         Thread.list.each do |thread|
-          thread["[mongoid]:identity-map-enabled"] = false
+          (thread[:mongoid] ||= {})["[mongoid]:identity-map-enabled"] = false
         end
       else
-        Thread.current["[mongoid]:identity-map-enabled"] = false
+        mongoid_current_thread["[mongoid]:identity-map-enabled"] = false
       end
     end
 
@@ -234,10 +234,10 @@ module Mongoid
     def enable_identity_map(option)
       if option == :all
         Thread.list.each do |thread|
-          thread["[mongoid]:identity-map-enabled"] = true
+          (thread[:mongoid] ||= {})["[mongoid]:identity-map-enabled"] = true
         end
       else
-        Thread.current["[mongoid]:identity-map-enabled"] = true
+        mongoid_current_thread["[mongoid]:identity-map-enabled"] = true
       end
     end
 
@@ -250,7 +250,7 @@ module Mongoid
     #
     # @since 2.1.0
     def insert(name)
-      Thread.current["[mongoid][#{name}]:insert-consumer"]
+      mongoid_current_thread["[mongoid][#{name}]:insert-consumer"]
     end
 
     # Set the insert consumer on the current thread.
@@ -264,7 +264,7 @@ module Mongoid
     #
     # @since 2.1.0
     def set_insert(name, consumer)
-      Thread.current["[mongoid][#{name}]:insert-consumer"] = consumer
+      mongoid_current_thread["[mongoid][#{name}]:insert-consumer"] = consumer
     end
 
     # Get the persistence options for the current thread.
@@ -278,7 +278,7 @@ module Mongoid
     #
     # @since 2.1.0
     def persistence_options(klass)
-      Thread.current["[mongoid][#{klass}]:persistence-options"]
+      mongoid_current_thread["[mongoid][#{klass}]:persistence-options"]
     end
 
     # Set the persistence options on the current thread.
@@ -293,7 +293,7 @@ module Mongoid
     #
     # @since 2.1.0
     def set_persistence_options(klass, options)
-      Thread.current["[mongoid][#{klass}]:persistence-options"] = options
+      mongoid_current_thread["[mongoid][#{klass}]:persistence-options"] = options
     end
 
     # Get the field selection options from the current thread.
@@ -307,7 +307,7 @@ module Mongoid
     #
     # @since 2.4.4
     def selection(criteria_instance_id)
-      selections = Thread.current["[mongoid][selections]"]
+      selections = mongoid_current_thread["[mongoid][selections]"]
       selections[criteria_instance_id] if selections
     end
 
@@ -323,8 +323,8 @@ module Mongoid
     #
     # @since 2.4.4
     def set_selection(criteria_instance_id, value)
-      Thread.current["[mongoid][selections]"] ||= {}
-      Thread.current["[mongoid][selections]"][criteria_instance_id] = value
+      mongoid_current_thread["[mongoid][selections]"] ||= {}
+      mongoid_current_thread["[mongoid][selections]"][criteria_instance_id] = value
     end
 
     # Delete the field selection on the current thread.
@@ -338,7 +338,7 @@ module Mongoid
     #
     # @since 3.0.7
     def delete_selection(criteria_instance_id)
-      selections = Thread.current["[mongoid][selections]"]
+      selections = mongoid_current_thread["[mongoid][selections]"]
       return false unless selections
       !!selections.delete(criteria_instance_id)
     end
@@ -352,7 +352,7 @@ module Mongoid
     #
     # @since 3.0.0
     def session_override
-      Thread.current["[mongoid]:session-override"]
+      mongoid_current_thread["[mongoid]:session-override"]
     end
 
     # Set the global session override.
@@ -366,7 +366,7 @@ module Mongoid
     #
     # @since 3.0.0
     def session_override=(name)
-      Thread.current["[mongoid]:session-override"] = name
+      mongoid_current_thread["[mongoid]:session-override"] = name
     end
 
     # Get the mongoid scope stack for chained criteria.
@@ -378,7 +378,7 @@ module Mongoid
     #
     # @since 2.1.0
     def scope_stack
-      Thread.current["[mongoid]:scope-stack"] ||= {}
+      mongoid_current_thread["[mongoid]:scope-stack"] ||= {}
     end
 
     # Get the value of the one-off timeless call.
@@ -390,7 +390,7 @@ module Mongoid
     #
     # @since 2.3.0
     def timeless
-      !!Thread.current["[mongoid]:timeless"]
+      !!mongoid_current_thread["[mongoid]:timeless"]
     end
 
     # Set the value of the one-off timeless call.
@@ -402,7 +402,7 @@ module Mongoid
     #
     # @since 2.3.0
     def timeless=(value)
-      Thread.current["[mongoid]:timeless"] = value
+      mongoid_current_thread["[mongoid]:timeless"] = value
     end
 
     # Is the current thread setting timestamps?
@@ -454,7 +454,7 @@ module Mongoid
     #
     # @since 3.0.0
     def autosaves
-      Thread.current["[mongoid]:autosaves"] ||= {}
+      mongoid_current_thread["[mongoid]:autosaves"] ||= {}
     end
 
     # Get all validations on the current thread.
@@ -466,7 +466,7 @@ module Mongoid
     #
     # @since 2.1.9
     def validations
-      Thread.current["[mongoid]:validations"] ||= {}
+      mongoid_current_thread["[mongoid]:validations"] ||= {}
     end
 
     # Get all autosaves on the current thread for the class.
@@ -494,6 +494,13 @@ module Mongoid
     # @since 2.1.9
     def validations_for(klass)
       validations[klass] ||= []
+    end
+
+    # Get storage space for current thread
+    #
+    # @return [ Hash ]
+    def mongoid_current_thread
+      Thread.current[:mongoid] ||= {}
     end
   end
 end
